@@ -67,7 +67,7 @@ export class OrderTimeController {
           <input type="number" id="deliveryMax" name="deliveryMax" required  value="75"/>
           <br><br>
 
-          <label for="currentTime">Current Time (Optional, HH:mm):</label>
+          <label for="currentTime">Current Time (Optional, HH:mm): (enter to avoid the past time validation)</label>
           <input type="text" id="currentTime" name="currentTime" />
           <br><br>
 
