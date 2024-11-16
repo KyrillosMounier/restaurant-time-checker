@@ -1,9 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as dotenv from 'dotenv';
-// import { HttpExceptionFilter } from './http-exception.filter';
 import { AppModule } from './app.module';
 import { CustomValidationPipe } from './validators/custom-validation.pipe';
+import { HttpExceptionFilter } from './http-exception.filter';
 dotenv.config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,8 +19,9 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);
   app.useGlobalPipes(new CustomValidationPipe());
+  app.useGlobalFilters(new HttpExceptionFilter());
   const port = process.env.PORT ?? 3000;
-  // app.useGlobalFilters(new HttpExceptionFilter());
+
   console.log('run on port', port);
   console.log('swagger Docs on /api-docs');
 

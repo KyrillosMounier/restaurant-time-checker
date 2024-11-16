@@ -1,7 +1,7 @@
 {
   "name": "restaurant-time-checker",
   "version": "0.0.1",
-  "description": "",
+  "description": "A simulation for placing orders in restaurant app based on restaurant",
   "author": "Kyrillos.fci@gmail.com",
   "private": true,
   "license": "UNLICENSED",

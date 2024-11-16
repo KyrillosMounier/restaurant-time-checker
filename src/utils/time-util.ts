@@ -1,6 +1,7 @@
 /**
  * Parses a time string in HH:mm format to a Date object
  * @param timeString - The time string in HH:mm format
+ * @param currentTime - (optional) currentTime , to controll current time for test cases
  * @returns Date - The corresponding Date object with hours and minutes set to the given time
  */
 export function parseTime(timeString: string, currentTime?: Date): Date {
@@ -17,7 +18,7 @@ export function parseTime(timeString: string, currentTime?: Date): Date {
 /**
  * add minutes to the current time
  * @param minutesToAdd - The number of minutes
- * @param specificDate - (optional) ThspecificDate
+ * @param specificDate - (optional) specificDate
  * @returns Date - The corresponding Date object with hours and minutes set to the given time
  */
 // Helper function to add minutes to the current time

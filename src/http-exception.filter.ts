@@ -46,10 +46,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
     response.status(status).json({
       statusCode: status,
       message,
-      validationErrors, // Include validation errors here if present
+      validationErrors,
       path: request.url,
-      // Optionally include a timestamp
-      timestamp: new Date().toISOString(),
     });
   }
 }

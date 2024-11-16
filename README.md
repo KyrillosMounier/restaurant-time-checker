@@ -32,7 +32,8 @@ To run tests for the project, use the following command:
 ```bash
 npm run test
 ```
-
+## Postman collection
+postman collection on restaurant-time-checker.postman_collection.json
 ## Acknowledgements
 
 - Thanks to all the contributors to this project.
