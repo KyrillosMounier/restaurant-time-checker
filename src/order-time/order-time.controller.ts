@@ -4,14 +4,101 @@ import {
   ApiOrderTimeValidationResponse,
   ApiOrderTimeValidationResponse400,
 } from './swagger-order-time.decorator';
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { OrderTimeService } from './order-time.service';
 import { OrderTimeValidationDto } from '../dtos/order-time-validation.dto';
 
 @Controller('order-time')
 export class OrderTimeController {
   constructor(private readonly orderTimeService: OrderTimeService) {}
+  @Get('form')
+  getForm(): string {
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Order API Test</title>
+      </head>
+      <body>
+        <h1>Order Time Validation</h1>
+        <form id="orderForm">
+          <label for="orderType">Order Type (pickup or delivery):</label>
+          <select id="orderType" name="orderType" required>
+            <option value="pickup">Pickup</option>
+            <option value="delivery">Delivery</option>
+          </select>
+          <br><br>
 
+          <label for="requestedTime">Requested Time (HH:mm):</label>
+          <input type="text" id="requestedTime" name="requestedTime" required value="13:00" />
+          <br><br>
+
+          <label for="restaurantOpen">Restaurant Open (HH:mm):</label>
+          <input type="text" id="restaurantOpen" name="restaurantOpen" required  value="09:00" />
+          <br><br>
+
+          <label for="restaurantClose">Restaurant Close (HH:mm):</label>
+          <input type="text" id="restaurantClose" name="restaurantClose" required  value="21:00" />
+          <br><br>
+
+          <label for="orderAcceptOpen">Order Accept Open (HH:mm):</label>
+          <input type="text" id="orderAcceptOpen" name="orderAcceptOpen" required  value="09:30" />
+          <br><br>
+
+          <label for="orderAcceptClose">Order Accept Close (HH:mm):</label>
+          <input type="text" id="orderAcceptClose" name="orderAcceptClose" required   value="20:00"/>
+          <br><br>
+
+          <label for="pickupMin">Pickup Min (Minutes):</label>
+          <input type="number" id="pickupMin" name="pickupMin" required  value="15" />
+          <br><br>
+
+          <label for="pickupMax">Pickup Max (Minutes):</label>
+          <input type="number" id="pickupMax" name="pickupMax" required  value="30" />
+          <br><br>
+
+          <label for="deliveryMin">Delivery Min (Minutes):</label>
+          <input type="number" id="deliveryMin" name="deliveryMin" required  value="60"/>
+          <br><br>
+
+          <label for="deliveryMax">Delivery Max (Minutes):</label>
+          <input type="number" id="deliveryMax" name="deliveryMax" required  value="75"/>
+          <br><br>
+
+          <label for="currentTime">Current Time (Optional, HH:mm):</label>
+          <input type="text" id="currentTime" name="currentTime" />
+          <br><br>
+
+          <button type="submit">Submit</button>
+        </form>
+
+        <script>
+          document.getElementById('orderForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {};
+            formData.forEach((value, key) => {
+              data[key] = value;
+            });
+
+            fetch('/order-time', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(data),
+            })
+              .then(response => response.json())
+              .then(data => alert('Order created successfully: ' + JSON.stringify(data)))
+              .catch(error => alert('Error: ' + error));
+          });
+        </script>
+      </body>
+      </html>
+    `;
+  }
   @Post()
   @ApiOrderTimeValidationOperation
   @ApiOrderTimeValidationBody
