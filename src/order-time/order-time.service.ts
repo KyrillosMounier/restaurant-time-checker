@@ -8,14 +8,30 @@ import { addMinutesToTime, parseTime } from '../utils/time-util';
 @Injectable()
 export class OrderTimeService {
   validateRequestTime(data: OrderTimeValidationDto): number {
-    // Use the provided currentTime if available (needed for automation testing), else use the system time
     const currentTime = data.currentTime
       ? parseTime(data.currentTime, new Date()) // Parse currentTime as Date
       : new Date();
     console.log('Current Time (Now):', this.formatDateInTimeZone(currentTime));
 
     // Parse requested time as Date object (ensure same reference date as currentTime)
-    const requestedTime = parseTime(data.requestedTime, currentTime);
+    let requestedTime = parseTime(data.requestedTime, currentTime);
+
+    // Adjust requestedTime if it's earlier than currentTime (possibly user meant PM)
+    if (requestedTime.getHours() <= 12 && requestedTime < currentTime) {
+      console.log('conver to 24 h');
+      const nextDayRequestedTime = new Date(requestedTime);
+      nextDayRequestedTime.setHours(nextDayRequestedTime.getHours() + 12);
+
+      // Check if converting to PM makes it valid
+      if (nextDayRequestedTime > currentTime) {
+        console.log(
+          `Adjusting requested time from ${this.formatDateInTimeZone(
+            requestedTime,
+          )} to ${this.formatDateInTimeZone(nextDayRequestedTime)} (PM assumed)`,
+        );
+        requestedTime = nextDayRequestedTime;
+      }
+    }
     console.log('Requested Time:', this.formatDateInTimeZone(requestedTime));
 
     // Parse all other time fields (ensure same reference date as currentTime)
@@ -41,11 +57,10 @@ export class OrderTimeService {
       this.formatDateInTimeZone(restaurantCloseTime),
     );
 
-    // Get current time in the local time zone
     const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     console.log('Local Time Zone:', localTimeZone);
 
-    // Check if requested time is in the past
+    // Check if requested time is in the past after adjustment
     if (requestedTime < currentTime) {
       console.log('Error: Requested time is in the past');
       return -3; // Error code for requested time being in the past
@@ -84,15 +99,16 @@ export class OrderTimeService {
         orderAcceptCloseTime,
       );
       console.log(
-        `Pickup Validation: Min Pickup Time (Now + ${data.pickupMin} minutes): ${this.formatDateInTimeZone(minPickupTimeFromNow)}`,
+        `Pickup Validation: Min Pickup Time (Now + ${data.pickupMin} minutes): ${this.formatDateInTimeZone(
+          minPickupTimeFromNow,
+        )}`,
       );
       console.log(
-        `Pickup Validation: Max Pickup Time (Order Close - ${data.pickupMin} minutes): ${this.formatDateInTimeZone(maxPickupTimeFromOrderClose)}`,
+        `Pickup Validation: Max Pickup Time (Order Close - ${data.pickupMin} minutes): ${this.formatDateInTimeZone(
+          maxPickupTimeFromOrderClose,
+        )}`,
       );
 
-      // Debugging step: Check actual difference between requested time and min/max pickup time
-
-      // Fix to ensure pickup time is correctly within bounds
       if (
         requestedTime < minPickupTimeFromNow ||
         requestedTime > maxPickupTimeFromOrderClose
@@ -113,10 +129,14 @@ export class OrderTimeService {
         orderAcceptCloseTime,
       );
       console.log(
-        `Delivery Validation: Min Delivery Time (Now + ${data.deliveryMin} minutes): ${this.formatDateInTimeZone(minDeliveryTimeFromNow)}`,
+        `Delivery Validation: Min Delivery Time (Now + ${data.deliveryMin} minutes): ${this.formatDateInTimeZone(
+          minDeliveryTimeFromNow,
+        )}`,
       );
       console.log(
-        `Delivery Validation: Max Delivery Time (Order Close - ${data.deliveryMin} minutes): ${this.formatDateInTimeZone(maxDeliveryTimeFromOrderClose)}`,
+        `Delivery Validation: Max Delivery Time (Order Close - ${data.deliveryMin} minutes): ${this.formatDateInTimeZone(
+          maxDeliveryTimeFromOrderClose,
+        )}`,
       );
 
       if (
@@ -128,10 +148,9 @@ export class OrderTimeService {
       }
     }
 
-    // If all validations passed, return the difference in minutes between the requested time and the current time
     const timeDifferenceInMinutes = Math.floor(
       (requestedTime.getTime() - currentTime.getTime()) / 60000,
-    ); // Difference in minutes
+    );
     console.log(
       'Time Difference (Requested Time - Current Time):',
       timeDifferenceInMinutes,

@@ -72,7 +72,22 @@ export class OrderTimeController {
           <br><br>
 
           <button type="submit">Submit</button>
+          <br><br>
+
         </form>
+     <div>
+        <ul> <h4>Response types:</h4>
+        <li>(-3) Requested time being in the past - you can control it by setting a value in "currentTime"</li>
+        <li>(-2) Outside restaurant operating hours</li>
+        <li>(-1) Outside order acceptance hours</li>
+        <li>(0) Outside acceptable range for minimum pickup or delivery period</li>
+        <li>(positive value) the differance between now and requested time in minutes</li>
+        <li><b>**Note**</b>for Requested time only we handle convert from 24h formate to 12h foramt for check if it's earlier than currentTime ,
+        Adjust requestedTime  (possibly user meant PM)
+        </li>
+
+        </ul>
+     </div>
 
         <script>
           document.getElementById('orderForm').addEventListener('submit', function(event) {
@@ -91,7 +106,7 @@ export class OrderTimeController {
               body: JSON.stringify(data),
             })
               .then(response => response.json())
-              .then(data => alert('Order created successfully: ' + JSON.stringify(data)))
+              .then(data => alert('response is: ' + JSON.stringify(data)))
               .catch(error => alert('Error: ' + error));
           });
         </script>
