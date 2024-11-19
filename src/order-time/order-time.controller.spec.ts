@@ -1,34 +1,31 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrderTimeController } from './order-time.controller';
 import { OrderTimeService } from './order-time.service';
-import * as request from 'supertest'; // Correct 'supertest' import
+import * as request from 'supertest';
 import { HttpStatus } from '@nestjs/common';
-import {
-  OrderTimeValidationDto,
-  OrderType,
-} from '../dtos/order-time-validation.dto';
+import { OrderTimeValidationDto } from '../dtos/order-time-validation.dto';
 import { INestApplication } from '@nestjs/common';
 import { CustomValidationPipe } from '../validators/custom-validation.pipe';
 
 describe('OrderTimeController', () => {
-  let app: INestApplication; // Declare app variable for NestJS application
+  let app: INestApplication;
   let service: OrderTimeService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [OrderTimeController],
-      providers: [OrderTimeService], // No mocking of the service
+      providers: [OrderTimeService],
     }).compile();
 
     app = module.createNestApplication();
-    app.useGlobalPipes(new CustomValidationPipe()); // Initialize the NestJS app
-    await app.init(); // Start the app
+    app.useGlobalPipes(new CustomValidationPipe());
+    await app.init();
 
-    service = module.get<OrderTimeService>(OrderTimeService); // Get the actual service
+    service = module.get<OrderTimeService>(OrderTimeService);
   });
 
   afterEach(async () => {
-    await app.close(); // Ensure app is closed after tests
+    await app.close();
   });
 
   it('should be defined', () => {
@@ -38,71 +35,67 @@ describe('OrderTimeController', () => {
 
   describe('POST /order-time', () => {
     it('should return valid response for pickup request', async () => {
+      // Generate current date and set a random time for requestedDateTime
+      const now = new Date();
+      const hours = now.getHours() - 5; // past hour
+      const minutes = now.getMinutes();
+      now.setHours(hours, minutes, 0, 0); // Set time
+      const requestedDateTime = now
+        .toISOString()
+        .slice(0, 16)
+        .replace('T', ' '); // Format as YYYY-MM-DD HH:mm
+
       const dto: OrderTimeValidationDto = {
-        orderType: OrderType.PICKUP,
-        requestedTime: '15:00', // Use valid time format
+        requestedDateTime: requestedDateTime, // Use generated random date-time
         restaurantOpen: '09:00',
         restaurantClose: '22:00',
         orderAcceptOpen: '09:30',
         orderAcceptClose: '20:30',
-        pickupMin: 15,
-        pickupMax: 30,
-        deliveryMin: 15,
-        deliveryMax: 60,
-        currentTime: '14:00',
+        serviceDuration: '60-75',
+        currentTime: '14:00', // Optional, can be adjusted as needed
       };
 
-      // Send POST request using 'supertest' to the correct path
-      return request(app.getHttpServer()) // Make sure you use app.getHttpServer() for the request
+      return request(app.getHttpServer())
         .post('/order-time')
         .send(dto)
         .expect(HttpStatus.CREATED)
         .expect((res) => {
-          expect(res.body.result).toBeGreaterThanOrEqual(0); // Adjust this depending on your expected response
+          expect(res.body.result).toBe(-3); // Adjust based on your expected response
         });
     });
 
     it('should return 400 Bad Request when invalid time is provided', async () => {
       const dto: OrderTimeValidationDto = {
-        orderType: OrderType.PICKUP,
-        requestedTime: 'invalid_time', // Invalid time format to trigger the validation error
+        requestedDateTime: 'invalid-time',
         restaurantOpen: '09:00',
         restaurantClose: '22:00',
         orderAcceptOpen: '09:30',
         orderAcceptClose: '20:30',
-        pickupMin: 15,
-        pickupMax: 30,
-        deliveryMin: 15,
-        deliveryMax: 60,
+        serviceDuration: '60-75',
         currentTime: '14:00',
       };
       return request(app.getHttpServer())
         .post('/order-time')
         .send(dto)
-        .expect(HttpStatus.BAD_REQUEST) // Expect 400 status code
+        .expect(HttpStatus.BAD_REQUEST)
         .expect((res) => {
           expect(res.body.message).toEqual([
-            'requestedTime must be in the format HH:mm.',
-          ]); // Match validation error message
+            'requestedDateTime must be in the format YYYY-MM-DD HH:mm.',
+          ]);
         });
     });
 
     it('should return 500 Internal Server Error when unexpected error occurs', async () => {
       const dto: OrderTimeValidationDto = {
-        orderType: OrderType.PICKUP,
-        requestedTime: '15:00',
+        requestedDateTime: '2024-11-18 15:00',
         restaurantOpen: '09:00',
         restaurantClose: '22:00',
         orderAcceptOpen: '09:30',
         orderAcceptClose: '20:30',
-        pickupMin: 15,
-        pickupMax: 30,
-        deliveryMin: 15,
-        deliveryMax: 60,
+        serviceDuration: '60-75',
         currentTime: '14:00',
       };
 
-      // Directly simulate an unexpected error inside the actual service
       jest.spyOn(service, 'validateRequestTime').mockImplementation(() => {
         throw new Error('Unexpected error');
       });
@@ -110,7 +103,7 @@ describe('OrderTimeController', () => {
       return request(app.getHttpServer())
         .post('/order-time')
         .send(dto)
-        .expect(HttpStatus.INTERNAL_SERVER_ERROR) // Expect 500 status code
+        .expect(HttpStatus.INTERNAL_SERVER_ERROR)
         .expect((res) => {
           expect(res.body.message).toBe('Internal server error');
         });

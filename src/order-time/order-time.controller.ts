@@ -24,56 +24,37 @@ export class OrderTimeController {
       <body>
         <h1>Order Time Validation</h1>
         <form id="orderForm">
-          <label for="orderType">Order Type (pickup or delivery):</label>
-          <select id="orderType" name="orderType" required>
-            <option value="pickup">Pickup</option>
-            <option value="delivery">Delivery</option>
-          </select>
+        
+          <label for="requestedDateTime">Requested DateTime ( YYYY-MM-DD HH:mm):</label>
+          <input type="text" id="requestedDateTime" name="requestedDateTime" required />
           <br><br>
-
-          <label for="requestedTime">Requested Time (HH:mm):</label>
-          <input type="text" id="requestedTime" name="requestedTime" required value="13:00" />
-          <br><br>
-
+  
           <label for="restaurantOpen">Restaurant Open (HH:mm):</label>
           <input type="text" id="restaurantOpen" name="restaurantOpen" required  value="09:00" />
           <br><br>
-
+  
           <label for="restaurantClose">Restaurant Close (HH:mm):</label>
           <input type="text" id="restaurantClose" name="restaurantClose" required  value="21:00" />
           <br><br>
-
+  
           <label for="orderAcceptOpen">Order Accept Open (HH:mm):</label>
           <input type="text" id="orderAcceptOpen" name="orderAcceptOpen" required  value="09:30" />
           <br><br>
-
+  
           <label for="orderAcceptClose">Order Accept Close (HH:mm):</label>
           <input type="text" id="orderAcceptClose" name="orderAcceptClose" required   value="20:00"/>
           <br><br>
-
-          <label for="pickupMin">Pickup Min (Minutes):</label>
-          <input type="number" id="pickupMin" name="pickupMin" required  value="15" />
-          <br><br>
-
-          <label for="pickupMax">Pickup Max (Minutes):</label>
-          <input type="number" id="pickupMax" name="pickupMax" required  value="30" />
-          <br><br>
-
-          <label for="deliveryMin">Delivery Min (Minutes):</label>
-          <input type="number" id="deliveryMin" name="deliveryMin" required  value="60"/>
-          <br><br>
-
-          <label for="deliveryMax">Delivery Max (Minutes):</label>
-          <input type="number" id="deliveryMax" name="deliveryMax" required  value="75"/>
+  
+          <label for="serviceDuration">Service Duration in Minutes (min-max) or (max-min):</label>
+          <input type="text" id="serviceDuration" name="serviceDuration" required  value="60-75"/>
           <br><br>
 
           <label for="currentTime">Current Time (Optional, HH:mm): (enter to avoid the past time validation)</label>
           <input type="text" id="currentTime" name="currentTime" />
           <br><br>
-
+  
           <button type="submit">Submit</button>
           <br><br>
-
         </form>
      <div>
         <ul> <h4>Response types:</h4>
@@ -82,14 +63,24 @@ export class OrderTimeController {
         <li>(-1) Outside order acceptance hours</li>
         <li>(0) Outside acceptable range for minimum pickup or delivery period</li>
         <li>(positive value) the differance between now and requested time in minutes</li>
-        <li><b>**Note**</b>for Requested time only we handle convert from 24h formate to 12h foramt for check if it's earlier than currentTime ,
-        Adjust requestedTime  (possibly user meant PM)
-        </li>
-
         </ul>
      </div>
-
+  
         <script>
+          // Helper function to get the current date and time in YYYY-MM-DD HH:mm format
+          function getCurrentDateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = '14';
+            const minutes = '00';
+            return \`\${year}-\${month}-\${day} \${hours}:\${minutes}\`;
+          }
+  
+          // Set the current datetime value in the requestedDateTime input
+          document.getElementById('requestedDateTime').value = getCurrentDateTime();
+  
           document.getElementById('orderForm').addEventListener('submit', function(event) {
             event.preventDefault();
             const formData = new FormData(event.target);
@@ -97,7 +88,7 @@ export class OrderTimeController {
             formData.forEach((value, key) => {
               data[key] = value;
             });
-
+  
             fetch('/order-time', {
               method: 'POST',
               headers: {
@@ -114,6 +105,7 @@ export class OrderTimeController {
       </html>
     `;
   }
+
   @Post()
   @ApiOrderTimeValidationOperation
   @ApiOrderTimeValidationBody

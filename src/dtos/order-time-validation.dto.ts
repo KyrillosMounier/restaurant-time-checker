@@ -1,41 +1,23 @@
-import {
-  IsEnum,
-  IsNotEmpty,
-  IsInt,
-  Min,
-  Validate,
-  IsOptional,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsNotEmpty, Validate, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsTimeFormat } from '../validators/time-format.validator';
+import {
+  IsTimeFormat,
+  IsDateTimeFormat,
+} from '../validators/time-format.validator';
 import { IsGreaterThanValidator } from '../validators/time-comparsion.validator';
-import { IsNumberGreaterOrEqualValidator } from '../validators/number-comparsion.validator';
-
-export enum OrderType {
-  PICKUP = 'pickup',
-  DELIVERY = 'delivery',
-}
+import { IsValidServiceDuration } from '../validators/valid-duration.validator';
 
 export class OrderTimeValidationDto {
   @ApiProperty({
-    enum: OrderType,
-    example: OrderType.PICKUP,
-    description: 'Type of order, either "pickup" or "delivery".',
-  })
-  @IsEnum(OrderType, {
-    message: 'orderType must be either "pickup" or "delivery".',
-  })
-  @IsNotEmpty({ message: 'orderType is required.' })
-  orderType: OrderType;
-
-  @ApiProperty({
     example: '15:30',
-    description: 'The requested time for the order in the format HH:mm.',
+    description:
+      'The requested date time for the order in the format  YYYY-MM-DD HH:mm.',
   })
-  @IsTimeFormat({ message: 'requestedTime must be in the format HH:mm.' })
-  @IsNotEmpty({ message: 'requestedTime is required.' })
-  requestedTime: string;
+  @IsDateTimeFormat({
+    message: 'requestedDateTime must be in the format YYYY-MM-DD HH:mm.',
+  })
+  @IsNotEmpty({ message: 'requestedDateTime is required.' })
+  requestedDateTime: string;
 
   @ApiProperty({
     example: '09:00',
@@ -74,52 +56,16 @@ export class OrderTimeValidationDto {
     message: 'orderAcceptClose must be greater than orderAcceptOpen.',
   })
   orderAcceptClose: string;
-
   @ApiProperty({
-    example: 15,
-    description: 'The minimum time in minutes for pickup preparation.',
+    example: '60-75',
+    description: 'The service preparation time in minutes.',
   })
-  @IsInt({ message: 'pickupMin must be an integer.' })
-  @Min(0, { message: 'pickupMin must be at least 0.' })
-  @IsNotEmpty({ message: 'pickupMin is required.' })
-  @Type(() => Number)
-  pickupMin: number;
-
-  @ApiProperty({
-    example: 30,
-    description: 'The maximum time in minutes for pickup preparation.',
+  @IsNotEmpty({ message: 'Service duration is required.' })
+  @IsValidServiceDuration({
+    message:
+      'Invalid service duration format. Use "min-max" or "max-min", with positive numbers.',
   })
-  @IsInt({ message: 'pickupMax must be an integer.' })
-  @Min(0, { message: 'pickupMax must be at least 0.' })
-  @Validate(IsNumberGreaterOrEqualValidator, ['pickupMin'], {
-    message: 'pickupMax must be greater than or equal to pickupMin.',
-  })
-  @IsNotEmpty({ message: 'pickupMax is required.' })
-  @Type(() => Number)
-  pickupMax: number;
-
-  @ApiProperty({
-    example: 15,
-    description: 'The minimum time in minutes for delivery preparation.',
-  })
-  @IsInt({ message: 'deliveryMin must be an integer.' })
-  @Min(0, { message: 'deliveryMin must be at least 0.' })
-  @IsNotEmpty({ message: 'deliveryMin is required.' })
-  @Type(() => Number)
-  deliveryMin: number;
-
-  @ApiProperty({
-    example: 60,
-    description: 'The maximum time in minutes for delivery preparation.',
-  })
-  @IsInt({ message: 'deliveryMax must be an integer.' })
-  @Min(0, { message: 'deliveryMax must be at least 0.' })
-  @Validate(IsNumberGreaterOrEqualValidator, ['deliveryMin'], {
-    message: 'deliveryMax must be greater than or equal to deliveryMin.',
-  })
-  @IsNotEmpty({ message: 'deliveryMax is required.' })
-  @Type(() => Number)
-  deliveryMax: number;
+  serviceDuration: string;
 
   @ApiPropertyOptional({
     example: '14:00',
