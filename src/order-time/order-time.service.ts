@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { OrderTimeValidationDto } from '../dtos/order-time-validation.dto';
 import {
   addMinutesToTime,
-  isTimeWithinSpecificHours,
+  isTimeWithinSpecificDateTime,
+  // isTimeWithinSpecificHours,
   parseRequestedDateTime,
   parseTime,
 } from '../utils/time-util';
@@ -41,7 +42,13 @@ export class OrderTimeService {
 
     // Parse other time fields using the same date reference as currentTime
     const orderAcceptOpenTime = parseTime(data.orderAcceptOpen, currentTime);
-    const orderAcceptCloseTime = parseTime(data.orderAcceptClose, currentTime);
+    let orderAcceptCloseTime = parseTime(data.orderAcceptClose, currentTime);
+    if (orderAcceptCloseTime < orderAcceptOpenTime) {
+      // Add one day (24 hours in milliseconds) to orderAcceptCloseTime
+      orderAcceptCloseTime = new Date(
+        orderAcceptCloseTime.getTime() + 24 * 60 * 60 * 1000,
+      );
+    }
     console.log(
       'Order Accept Open Time:',
       this.formatDateInTimeZone(orderAcceptOpenTime),
@@ -52,7 +59,14 @@ export class OrderTimeService {
     );
 
     const restaurantOpenTime = parseTime(data.restaurantOpen, currentTime);
-    const restaurantCloseTime = parseTime(data.restaurantClose, currentTime);
+    let restaurantCloseTime = parseTime(data.restaurantClose, currentTime);
+
+    if (restaurantCloseTime < restaurantOpenTime) {
+      // Add one day (24 hours in milliseconds) to orderAcceptCloseTime
+      restaurantCloseTime = new Date(
+        restaurantCloseTime.getTime() + 24 * 60 * 60 * 1000,
+      );
+    }
     console.log(
       'Restaurant Open Time:',
       this.formatDateInTimeZone(restaurantOpenTime),
@@ -75,10 +89,10 @@ export class OrderTimeService {
 
     // Validate if the requested time falls within restaurant operating hours
     if (
-      !isTimeWithinSpecificHours(
+      !isTimeWithinSpecificDateTime(
         requestedDateTime,
-        data.restaurantOpen,
-        data.restaurantClose,
+        restaurantOpenTime,
+        restaurantCloseTime,
       )
     ) {
       console.log(
@@ -91,10 +105,10 @@ export class OrderTimeService {
 
     // Validate if the requested time falls within order acceptance hours
     if (
-      !isTimeWithinSpecificHours(
+      !isTimeWithinSpecificDateTime(
         requestedDateTime,
-        data.orderAcceptOpen,
-        data.orderAcceptClose,
+        orderAcceptOpenTime,
+        orderAcceptCloseTime,
       )
     ) {
       console.log(
@@ -112,6 +126,10 @@ export class OrderTimeService {
     // const serviceMax = Math.max(first, second);
     // Delivery/pickup validation
     const minDeliveryTimeFromNow = addMinutesToTime(serviceMin, currentTime);
+    const minDeliveryTimeFromOrderOpen = addMinutesToTime(
+      serviceMin,
+      orderAcceptOpenTime,
+    );
     const maxDeliveryTimeFromOrderClose = addMinutesToTime(
       -serviceMin,
       orderAcceptCloseTime,
@@ -130,15 +148,35 @@ export class OrderTimeService {
 
     // Validate requested time against delivery/pickup range (time-only comparison)
     if (
-      !isTimeWithinSpecificHours(
+      !isTimeWithinSpecificDateTime(
         requestedDateTime,
-        this.formatTimeString(minDeliveryTimeFromNow),
-        this.formatTimeString(maxDeliveryTimeFromOrderClose),
+        minDeliveryTimeFromOrderOpen,
+        maxDeliveryTimeFromOrderClose,
       )
     ) {
-      console.log('Error: Requested time is outside valid delivery range');
+      console.log(
+        'Error: Requested time is outside valid delivery range - from open',
+      );
       return 0; // Error: Delivery time outside acceptable range
     }
+
+    const isDifferentDay =
+      currentTime.getDate() !== requestedDateTime.getDate() ||
+      currentTime.getMonth() !== requestedDateTime.getMonth() ||
+      currentTime.getFullYear() !== requestedDateTime.getFullYear();
+    if (!isDifferentDay)
+      if (
+        !isTimeWithinSpecificDateTime(
+          requestedDateTime,
+          minDeliveryTimeFromNow,
+          maxDeliveryTimeFromOrderClose,
+        )
+      ) {
+        console.log(
+          'Error: Requested time is outside valid delivery range - from now',
+        );
+        return 0; // Error: Delivery time outside acceptable range
+      }
 
     // Calculate the time difference in minutes
     const timeDifferenceInMinutes = Math.floor(

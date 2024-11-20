@@ -91,3 +91,39 @@ export function isTimeWithinSpecificHours(
     requestedMinutes >= startTotalMinutes && requestedMinutes <= endTotalMinutes
   );
 }
+
+/**
+ * Validates if a given time falls within a specified datetime range.
+ *
+ * @param requestedDateTime - The Date object to validate.
+ * @param startTime - The start of the datetime.
+ * @param endTime - The end of thedatetime.
+ * @returns boolean - True if the time is within the range, false otherwise.
+ */
+export function isTimeWithinSpecificDateTime(
+  requestedDateTime: Date,
+  startTime: Date,
+  endTime: Date,
+): boolean {
+  // Normalize requested time to compare only time (ignore date)
+  let requestedMinutes =
+    requestedDateTime.getHours() * 60 + requestedDateTime.getMinutes();
+
+  const startMinutes = startTime.getHours() * 60 + startTime.getMinutes();
+  const endMinutes = endTime.getHours() * 60 + endTime.getMinutes();
+
+  let adjustedEndMinutes = endMinutes;
+
+  // Handle case where the end time is on the next day
+  if (endMinutes < startMinutes) {
+    adjustedEndMinutes += 24 * 60; // Add 24 hours in minutes to end time
+
+    if (requestedMinutes < startMinutes) {
+      requestedMinutes += 24 * 60; // Adjust requested time to match the next day
+    }
+  }
+
+  return (
+    requestedMinutes >= startMinutes && requestedMinutes <= adjustedEndMinutes
+  );
+}

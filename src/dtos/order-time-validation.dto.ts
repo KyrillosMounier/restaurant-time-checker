@@ -1,10 +1,10 @@
-import { IsNotEmpty, Validate, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsTimeFormat,
   IsDateTimeFormat,
 } from '../validators/time-format.validator';
-import { IsGreaterThanValidator } from '../validators/time-comparsion.validator';
+// import { IsGreaterThanValidator } from '../validators/time-comparsion.validator';
 import { IsValidServiceDuration } from '../validators/valid-duration.validator';
 
 export class OrderTimeValidationDto {
@@ -33,9 +33,9 @@ export class OrderTimeValidationDto {
   })
   @IsTimeFormat({ message: 'restaurantClose must be in the format HH:mm.' })
   @IsNotEmpty({ message: 'restaurantClose is required.' })
-  @Validate(IsGreaterThanValidator, ['restaurantOpen'], {
-    message: 'restaurantClose must be greater than restaurantOpen.',
-  })
+  // @Validate(IsGreaterThanValidator, ['restaurantOpen'], {
+  //   message: 'restaurantClose must be greater than restaurantOpen.',
+  // })
   restaurantClose: string;
 
   @ApiProperty({
@@ -52,9 +52,9 @@ export class OrderTimeValidationDto {
   })
   @IsTimeFormat({ message: 'orderAcceptClose must be in the format HH:mm.' })
   @IsNotEmpty({ message: 'orderAcceptClose is required.' })
-  @Validate(IsGreaterThanValidator, ['orderAcceptOpen'], {
-    message: 'orderAcceptClose must be greater than orderAcceptOpen.',
-  })
+  // @Validate(IsGreaterThanValidator, ['orderAcceptOpen'], {
+  //   message: 'orderAcceptClose must be greater than orderAcceptOpen.',
+  // })
   orderAcceptClose: string;
   @ApiProperty({
     example: '60-75',
