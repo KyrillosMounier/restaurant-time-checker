@@ -13,7 +13,7 @@ export class OrderTimeService {
   /**
    * Validates the requested order time based on multiple conditions:
    * 1. Ensures the requested time is not in the past.
-   * 2. Validates the time falls within restaurant operating hours.
+   * 2. Validates the request date didn't exceed the next days order limit.
    * 3. Validates the time is within order acceptance hours.
    * 4. Ensures delivery/pickup times meet minimum and maximum constraints.
    *
@@ -21,10 +21,9 @@ export class OrderTimeService {
    *
    * @param data - The DTO containing time-related data for validation.
    * @returns {number} Validation result:
-   * - -3: Requested time is in the past.
-   * - -2: Requested time is outside restaurant operating hours.
+   * - -2: Requested time is in the past.
    * - -1: Requested time is outside order acceptance hours.
-   * - 0: Requested time is outside delivery/pickup valid range.
+   * - 0: Requested time is outside delivery/pickup valid range or request date  exceed the next days order limit .
    * - Positive integer: Valid time, representing the difference in minutes from now.
    */
   validateRequestTime(data: OrderTimeValidationDto): number {
@@ -39,6 +38,21 @@ export class OrderTimeService {
       'Requested Time:',
       this.formatDateInTimeZone(requestedDateTime),
     );
+    const normalizeDate = (date: Date) =>
+      new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    const normalizedCurrentTime = normalizeDate(currentTime);
+    const normalizedRequestedTime = normalizeDate(requestedDateTime);
+
+    // Calculate the difference in days
+    const differenceInDays = Math.floor(
+      (normalizedRequestedTime.getTime() - normalizedCurrentTime.getTime()) /
+        (24 * 60 * 60 * 1000),
+    );
+    if (differenceInDays > data.allowedNextDaysOrder) {
+      console.log('Error: Requested date exceed the limit of next days');
+      return 0;
+    }
 
     // Parse other time fields using the same date reference as currentTime
     const orderAcceptOpenTime = parseTime(data.orderAcceptOpen, currentTime);
@@ -58,24 +72,6 @@ export class OrderTimeService {
       this.formatDateInTimeZone(orderAcceptCloseTime),
     );
 
-    const restaurantOpenTime = parseTime(data.restaurantOpen, currentTime);
-    let restaurantCloseTime = parseTime(data.restaurantClose, currentTime);
-
-    if (restaurantCloseTime < restaurantOpenTime) {
-      // Add one day (24 hours in milliseconds) to orderAcceptCloseTime
-      restaurantCloseTime = new Date(
-        restaurantCloseTime.getTime() + 24 * 60 * 60 * 1000,
-      );
-    }
-    console.log(
-      'Restaurant Open Time:',
-      this.formatDateInTimeZone(restaurantOpenTime),
-    );
-    console.log(
-      'Restaurant Close Time:',
-      this.formatDateInTimeZone(restaurantCloseTime),
-    );
-
     console.log(
       'Local Time Zone:',
       Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -84,24 +80,43 @@ export class OrderTimeService {
     // Check if requested time is in the past
     if (requestedDateTime < currentTime) {
       console.log('Error: Requested time is in the past');
-      return -3; // Error: Requested time is in the past
+      return -2; // Error: Requested time is in the past
     }
+    /**start of restaurantOpen / close  case **********************************************/
+    // const restaurantOpenTime = parseTime(data.restaurantOpen, currentTime);
+    // let restaurantCloseTime = parseTime(data.restaurantClose, currentTime);
+
+    // if (restaurantCloseTime < restaurantOpenTime) {
+    //   // Add one day (24 hours in milliseconds) to orderAcceptCloseTime
+    //   restaurantCloseTime = new Date(
+    //     restaurantCloseTime.getTime() + 24 * 60 * 60 * 1000,
+    //   );
+    // }
+    // console.log(
+    //   'Restaurant Open Time:',
+    //   this.formatDateInTimeZone(restaurantOpenTime),
+    // );
+    // console.log(
+    //   'Restaurant Close Time:',
+    //   this.formatDateInTimeZone(restaurantCloseTime),
+    // );
 
     // Validate if the requested time falls within restaurant operating hours
-    if (
-      !isTimeWithinSpecificDateTime(
-        requestedDateTime,
-        restaurantOpenTime,
-        restaurantCloseTime,
-      )
-    ) {
-      console.log(
-        `Error: Requested time is outside restaurant hours (Open: ${this.formatDateInTimeZone(
-          restaurantOpenTime,
-        )}, Close: ${this.formatDateInTimeZone(restaurantCloseTime)})`,
-      );
-      return -2; // Error: Outside restaurant operating hours
-    }
+    // if (
+    //   !isTimeWithinSpecificDateTime(
+    //     requestedDateTime,
+    //     restaurantOpenTime,
+    //     restaurantCloseTime,
+    //   )
+    // ) {
+    //   console.log(
+    //     `Error: Requested time is outside restaurant hours (Open: ${this.formatDateInTimeZone(
+    //       restaurantOpenTime,
+    //     )}, Close: ${this.formatDateInTimeZone(restaurantCloseTime)})`,
+    //   );
+    //   return -2; // Error: Outside restaurant operating hours
+    // }
+    /**end of restaurantOpen / close  case **********************************************/
 
     // Validate if the requested time falls within order acceptance hours
     if (

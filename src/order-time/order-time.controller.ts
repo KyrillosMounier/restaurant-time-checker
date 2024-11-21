@@ -29,14 +29,6 @@ export class OrderTimeController {
           <input type="text" id="requestedDateTime" name="requestedDateTime" required />
           <br><br>
   
-          <label for="restaurantOpen">Restaurant Open (HH:mm):</label>
-          <input type="text" id="restaurantOpen" name="restaurantOpen" required  value="09:00" />
-          <br><br>
-  
-          <label for="restaurantClose">Restaurant Close (HH:mm):</label>
-          <input type="text" id="restaurantClose" name="restaurantClose" required  value="21:00" />
-          <br><br>
-  
           <label for="orderAcceptOpen">Order Accept Open (HH:mm):</label>
           <input type="text" id="orderAcceptOpen" name="orderAcceptOpen" required  value="09:30" />
           <br><br>
@@ -49,6 +41,10 @@ export class OrderTimeController {
           <input type="text" id="serviceDuration" name="serviceDuration" required  value="60-75"/>
           <br><br>
 
+              <label for="allowedNextDaysOrder">Allowed for Next Days:(Number)</label>
+          <input type="number" id="allowedNextDaysOrder" name="allowedNextDaysOrder" required min="1" value="1"/>
+          <br><br>
+
           <label for="currentTime">Current Time (Optional, HH:mm): (enter to avoid the past time validation)</label>
           <input type="text" id="currentTime" name="currentTime" />
           <br><br>
@@ -58,10 +54,9 @@ export class OrderTimeController {
         </form>
      <div>
         <ul> <h4>Response types:</h4>
-        <li>(-3) Requested time being in the past - you can control it by setting a value in "currentTime"</li>
-        <li>(-2) Outside restaurant operating hours</li>
+        <li>(-2) Requested time being in the past - you can control it by setting a value in "currentTime"</li>
         <li>(-1) Outside order acceptance hours</li>
-        <li>(0) Outside acceptable range for minimum pickup or delivery period</li>
+        <li>(0) Outside acceptable range for minimum pickup or delivery period or the request date exceed the next days order limit </li>
         <li>(positive value) the differance between now and requested time in minutes</li>
         </ul>
      </div>

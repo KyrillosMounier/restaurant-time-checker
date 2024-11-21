@@ -17,11 +17,9 @@ describe('OrderTimeService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should return -3 if requested time is in the past', () => {
+  it('should return -2 if requested time is in the past', () => {
     const dto: OrderTimeValidationDto = {
       requestedDateTime: getRequestedDateTime('08:00'), // Time in the past
-      restaurantOpen: '09:00',
-      restaurantClose: '22:00',
       orderAcceptOpen: '09:00',
       orderAcceptClose: '21:00',
       serviceDuration: '10-30', // Example pickup time range (10 to 30 minutes)
@@ -29,14 +27,13 @@ describe('OrderTimeService', () => {
     };
 
     const result = service.validateRequestTime(dto);
-    expect(result).toBe(-3); // Requested time is in the past
+    expect(result).toBe(-2); // Requested time is in the past
   });
 
-  it('should return -2 if requested time is outside restaurant hours', () => {
+  it('should return 0 if requested date exceed next days order limit', () => {
     const dto: OrderTimeValidationDto = {
-      requestedDateTime: getRequestedDateTime('23:00'), // Outside restaurant hours
-      restaurantOpen: '09:00',
-      restaurantClose: '22:00',
+      requestedDateTime: getRequestedDateTimeNextDays('23:00', 5), // Outside restaurant hours
+      allowedNextDaysOrder: 3,
       orderAcceptOpen: '09:00',
       orderAcceptClose: '21:00',
       serviceDuration: '10-30', // Example pickup time range
@@ -44,14 +41,12 @@ describe('OrderTimeService', () => {
     };
 
     const result = service.validateRequestTime(dto);
-    expect(result).toBe(-2); // Outside restaurant operating hours
+    expect(result).toBe(0); // Outside restaurant operating hours
   });
 
   it('should return -1 if requested time is outside order acceptance hours', () => {
     const dto: OrderTimeValidationDto = {
       requestedDateTime: getRequestedDateTime('21:30'), // Outside order accept hours
-      restaurantOpen: '09:00',
-      restaurantClose: '22:00',
       orderAcceptOpen: '09:00',
       orderAcceptClose: '21:00',
       serviceDuration: '10-30', // Example pickup time range
@@ -65,8 +60,6 @@ describe('OrderTimeService', () => {
   it('should return 0 if requested time is outside valid service duration', () => {
     const dto: OrderTimeValidationDto = {
       requestedDateTime: getRequestedDateTime('21:00'), // Outside valid service time range
-      restaurantOpen: '09:00',
-      restaurantClose: '22:00',
       orderAcceptOpen: '09:00',
       orderAcceptClose: '21:00',
       serviceDuration: '10-30', // Example pickup time range
@@ -80,8 +73,6 @@ describe('OrderTimeService', () => {
   it('should return time difference (60 m) if requested time is valid', () => {
     const dto: OrderTimeValidationDto = {
       requestedDateTime: getRequestedDateTime('15:00'), // Valid time
-      restaurantOpen: '09:00',
-      restaurantClose: '22:00',
       orderAcceptOpen: '09:00',
       orderAcceptClose: '21:00',
       serviceDuration: '10-30', // Example pickup time range
@@ -95,8 +86,6 @@ describe('OrderTimeService', () => {
   it('should return 0 if requested time equals current time', () => {
     const dto: OrderTimeValidationDto = {
       requestedDateTime: getRequestedDateTime('10:00'), // Requested time is the same as current time
-      restaurantOpen: '09:00',
-      restaurantClose: '22:00',
       orderAcceptOpen: '09:00',
       orderAcceptClose: '21:00',
       serviceDuration: '10-30', // Example pickup time range
@@ -112,5 +101,18 @@ describe('OrderTimeService', () => {
 function getRequestedDateTime(time: string): string {
   const currentDate = new Date();
   const currentDateString = currentDate.toISOString().split('T')[0];
+  return `${currentDateString} ${time}`;
+}
+
+function getRequestedDateTimeNextDays(time: string, days: number): string {
+  const currentDate = new Date();
+
+  // Add the number of days
+  currentDate.setDate(currentDate.getDate() + days);
+
+  // Format the date portion (YYYY-MM-DD)
+  const currentDateString = currentDate.toISOString().split('T')[0];
+
+  // Return the combined date and time
   return `${currentDateString} ${time}`;
 }

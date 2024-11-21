@@ -47,8 +47,6 @@ describe('OrderTimeController', () => {
 
       const dto: OrderTimeValidationDto = {
         requestedDateTime: requestedDateTime, // Use generated random date-time
-        restaurantOpen: '09:00',
-        restaurantClose: '22:00',
         orderAcceptOpen: '09:30',
         orderAcceptClose: '20:30',
         serviceDuration: '60-75',
@@ -60,15 +58,13 @@ describe('OrderTimeController', () => {
         .send(dto)
         .expect(HttpStatus.CREATED)
         .expect((res) => {
-          expect(res.body.result).toBe(-3); // Adjust based on your expected response
+          expect(res.body.result).toBe(-2); // Adjust based on your expected response
         });
     });
 
     it('should return 400 Bad Request when invalid time is provided', async () => {
       const dto: OrderTimeValidationDto = {
         requestedDateTime: 'invalid-time',
-        restaurantOpen: '09:00',
-        restaurantClose: '22:00',
         orderAcceptOpen: '09:30',
         orderAcceptClose: '20:30',
         serviceDuration: '60-75',
@@ -88,8 +84,6 @@ describe('OrderTimeController', () => {
     it('should return 500 Internal Server Error when unexpected error occurs', async () => {
       const dto: OrderTimeValidationDto = {
         requestedDateTime: '2024-11-18 15:00',
-        restaurantOpen: '09:00',
-        restaurantClose: '22:00',
         orderAcceptOpen: '09:30',
         orderAcceptClose: '20:30',
         serviceDuration: '60-75',

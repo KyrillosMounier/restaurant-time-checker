@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, Min } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsTimeFormat,
@@ -6,6 +6,7 @@ import {
 } from '../validators/time-format.validator';
 // import { IsGreaterThanValidator } from '../validators/time-comparsion.validator';
 import { IsValidServiceDuration } from '../validators/valid-duration.validator';
+import { Transform } from 'class-transformer';
 
 export class OrderTimeValidationDto {
   @ApiProperty({
@@ -18,25 +19,6 @@ export class OrderTimeValidationDto {
   })
   @IsNotEmpty({ message: 'requestedDateTime is required.' })
   requestedDateTime: string;
-
-  @ApiProperty({
-    example: '09:00',
-    description: 'The opening time of the restaurant in the format HH:mm.',
-  })
-  @IsTimeFormat({ message: 'restaurantOpen must be in the format HH:mm.' })
-  @IsNotEmpty({ message: 'restaurantOpen is required.' })
-  restaurantOpen: string;
-
-  @ApiProperty({
-    example: '22:00',
-    description: 'The closing time of the restaurant in the format HH:mm.',
-  })
-  @IsTimeFormat({ message: 'restaurantClose must be in the format HH:mm.' })
-  @IsNotEmpty({ message: 'restaurantClose is required.' })
-  // @Validate(IsGreaterThanValidator, ['restaurantOpen'], {
-  //   message: 'restaurantClose must be greater than restaurantOpen.',
-  // })
-  restaurantClose: string;
 
   @ApiProperty({
     example: '09:30',
@@ -71,6 +53,15 @@ export class OrderTimeValidationDto {
     example: '14:00',
     description: 'Optional current time for testing in the format HH:mm.',
   })
+  @ApiProperty({
+    example: 1,
+    description: 'Allowed Next Days Order.',
+  })
+  @IsNumber()
+  @Min(1)
+  @Transform(({ value }) => parseInt(value, 10))
+  allowedNextDaysOrder?: number = 1;
+
   @IsOptional()
   currentTime?: string;
 }

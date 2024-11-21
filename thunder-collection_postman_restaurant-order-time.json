@@ -1,6 +1,6 @@
 {
     "info": {
-        "_postman_id": "e253be10-27f0-4441-a8de-5a50994181e1",
+        "_postman_id": "05cde851-8d30-491a-bd48-b2af110e3db0",
         "name": "restaurant-order-time",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
         "description": ""
@@ -28,7 +28,7 @@
                             "language": "json"
                         }
                     },
-                    "raw": "{\n  \"requestedDateTime\": \"2024-11-20 21:00\",\n  \"restaurantOpen\": \"09:00\",\n  \"restaurantClose\": \"23:00\",\n  \"orderAcceptOpen\": \"09:30\",\n  \"orderAcceptClose\": \"22:00\",\n  \"serviceDuration\":\"30-45\",\n  \"currentTime\": \"19:00\"\n}"
+                    "raw": "{\n  \"requestedDateTime\": \"2024-11-21 21:00\",\n  \"orderAcceptOpen\": \"09:30\",\n  \"orderAcceptClose\": \"22:00\",\n  \"serviceDuration\":\"30-45\",\n  \"currentTime\": \"19:00\",\n  \"allowedNextDaysOrder\":1\n}"
                 }
             }
         }
